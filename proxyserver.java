@@ -1,6 +1,8 @@
 package Proxy;
 
 import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -39,6 +41,13 @@ public class ProxyServer {
 			cacheDir.mkdirs();
 		}
 
+		ServerSocket server = new ServerSocket(Port);
+		DataOutputStream os;
+		DataInputStream is;
+
+		Socket client = server.accept();
+		is = new DataInputStream(client.getInputStream());
+		os = new DataOutputStream(client.getOutputStream());
 		/**
 			 * To do:
 			 * create a serverSocket to listen on the port (proxyPort)
