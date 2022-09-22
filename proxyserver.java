@@ -62,6 +62,8 @@ public class ProxyServer {
 
 	public synchronized void writeLog(String info) {
 		
+			logFileName.write(info + new SimpleDateFormat(yyyy.MM.dd.HH.mm.ss).format(new Date()));
+
 			/**
 			 * To do
 			 * write string (info) to the log file, and add the current time stamp 
