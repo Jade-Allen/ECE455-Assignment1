@@ -82,7 +82,23 @@ public class RequestHandler extends Thread {
 		 * (4) Write the web server's response to a cache file, put the request URL and cache file name to the cache Map
 		 * (5) close file, and sockets.
 		*/
-		
+		String clientSentence;
+		String capitalizedSentence;
+
+		Socket proxySocket = new ServerSocket(80);
+
+		while(true){		// wait for contact by server
+			Socket connectionSocket = proxySocket.accept();
+
+			BufferedReader inFromClient = new BufferedReader(new InputStreamReader(proxySocket.getInputStream()));
+
+			DataOutputStream outToClient = new DataOutputStream(proxySocket.getOutputStream());
+
+			clientSentence = inFromClient.readLine();
+			capitalizedSentence = clientSentence.toUpperCase() + "\n";
+			outToClient.writeBytes(capitalizedSentence);
+		}
+
 	}
 	
 	
