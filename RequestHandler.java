@@ -7,7 +7,7 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 
-
+//Temp comment
 // RequestHandler is thread that process requests of one client connection
 public class RequestHandler extends Thread {
 
