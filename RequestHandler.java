@@ -26,16 +26,14 @@ public class RequestHandler extends Thread {
 
 	public RequestHandler(Socket clientSocket, ProxyServer proxyServer) {
 
-		
 		this.clientSocket = clientSocket;
-		
 
 		this.server = proxyServer;
 
 		try {
 			clientSocket.setSoTimeout(2000);
-			inFromClient = clientSocket.getInputStream();
-			outToClient = clientSocket.getOutputStream();
+			proxyToClientRead = new BufferedReader(InputStreamReader(clientSocket.getInputStream()));
+			proxyToClientWrite = new BufferedWriter(new OutputStreamWeiter(clientSocket.getOutputStream()));
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -48,6 +46,40 @@ public class RequestHandler extends Thread {
 	
 	public void run() {
 
+		String requestString;
+		try{
+			requestString = proxyToClientRead.readLine();
+		} catch (IOException e)
+		{
+			e.printStackTrace();
+			System.out.println("Error reading request from client");
+			return;
+		}
+
+		System.out.println("Request Received" + requestString);
+
+		String request = requestString.substring(0, requestString.indexOf(' '));
+
+		String urlString = requestString.substring(requestString.indexOf(' ') + 1);
+
+		urlString = urlString.substring(0,urlString.indexOf(' '));
+
+		if(!urlString.substring(0,4).equals("http")){
+			String temp = "http://";
+			urlString = temp + urlString;
+		}
+
+		if(request.equals("CONNECT"))
+		{
+			System.out.println("HTTPS Request for : " + urlString + "\n");
+			handleHTTPSRequest(urlString);
+		} else {
+			File file;
+			if((file = Proxy.getCache(urlString)) != null){
+				System.out.println("Cached Copy found for : " + urlString + "\n");
+				sendCachedInfoToClient(file);
+			}
+		}
 		/**
 			 * To do
 			 * Process the requests from a client. In particular, 
@@ -73,6 +105,8 @@ public class RequestHandler extends Thread {
 		
 		// to handle binary content, byte is used
 		byte[] serverReply = new byte[4096];
+
+		ProxyServer.startServer();
 
 		/**
 		 * To do
