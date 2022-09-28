@@ -11,24 +11,32 @@ import java.security.SecureRandom;
 // RequestHandler is thread that process requests of one client connection
 public class RequestHandler extends Thread {
 
-	
+	//socket for communication between client and proxy
+	//passed by proxy
 	Socket clientSocket;
 
+	//date from client to proxy
 	InputStream inFromClient;
 
+	//data from proxy to client
 	OutputStream outToClient;
 	
+	//request from client to proxy server.
+	//client creates request. proxy reads and forwards it to web site
 	byte[] request = new byte[1024];
 
 	
 	private ProxyServer server;
 
 
+	/**
+	 * creates RequestHandler Object for use with GET requests from client
+	 * 
+	 */
 	public RequestHandler(Socket clientSocket, ProxyServer proxyServer) {
 
 		
 		this.clientSocket = clientSocket;
-		
 
 		this.server = proxyServer;
 
