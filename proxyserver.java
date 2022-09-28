@@ -16,8 +16,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-
-
 public class ProxyServer {
 
 	//cache is a Map: the key is the URL and the value is the file name of the file that stores the cached content
@@ -40,8 +38,10 @@ public class ProxyServer {
 		if (!cacheDir.exists() || (cacheDir.exists() && !cacheDir.isDirectory())) {
 			cacheDir.mkdirs();
 		}
+		
+		
 
-		ServerSocket server = new ServerSocket(Port);
+		//ServerSocket server = new ServerSocket(Port);
 		DataOutputStream os;
 		DataInputStream is;
 

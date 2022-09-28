@@ -32,8 +32,8 @@ public class RequestHandler extends Thread {
 
 		try {
 			clientSocket.setSoTimeout(2000);
-			proxyToClientRead = new BufferedReader(InputStreamReader(clientSocket.getInputStream()));
-			proxyToClientWrite = new BufferedWriter(new OutputStreamWeiter(clientSocket.getOutputStream()));
+			inFromClient = clientSocket.getInputStream();
+			outToClient = clientSocket.getOutputStream();
 
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -47,14 +47,7 @@ public class RequestHandler extends Thread {
 	public void run() {
 
 		String requestString;
-		try{
-			requestString = proxyToClientRead.readLine();
-		} catch (IOException e)
-		{
-			e.printStackTrace();
-			System.out.println("Error reading request from client");
-			return;
-		}
+		requestString = inFromClient.toString();
 
 		System.out.println("Request Received" + requestString);
 
@@ -69,17 +62,9 @@ public class RequestHandler extends Thread {
 			urlString = temp + urlString;
 		}
 
-		if(request.equals("CONNECT"))
-		{
-			System.out.println("HTTPS Request for : " + urlString + "\n");
-			handleHTTPSRequest(urlString);
-		} else {
-			File file;
-			if((file = Proxy.getCache(urlString)) != null){
-				System.out.println("Cached Copy found for : " + urlString + "\n");
-				sendCachedInfoToClient(file);
-			}
-		}
+		System.out.println("HTTPS Request for : " + urlString + "\n");
+		sendCachedInfoToClient(request);
+			
 		/**
 			 * To do
 			 * Process the requests from a client. In particular, 
@@ -99,14 +84,16 @@ public class RequestHandler extends Thread {
 		Socket toWebServerSocket = null;
 		InputStream inFromServer;
 		OutputStream outToServer;
+		int port;
 		
 		// Create Buffered output stream to write to cached copy of file
 		String fileName = "cached/" + generateRandomFileName() + ".dat";
+		port = 80;
 		
 		// to handle binary content, byte is used
 		byte[] serverReply = new byte[4096];
 
-		ProxyServer.startServer();
+		ProxyServer.startServer(port);
 
 		/**
 		 * To do
