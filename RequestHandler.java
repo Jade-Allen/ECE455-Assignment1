@@ -21,10 +21,10 @@ public class RequestHandler extends Thread {
 	byte[] request = new byte[1024];
 
 	
-	private ProxyServer server;
+	private proxyserver server;
 
 
-	public RequestHandler(Socket clientSocket, ProxyServer proxyServer) {
+	public RequestHandler(Socket clientSocket, proxyserver proxyServer) {
 
 		this.clientSocket = clientSocket;
 
@@ -48,22 +48,15 @@ public class RequestHandler extends Thread {
 
 		String requestString;
 		requestString = inFromClient.toString();
+		byte[] clientRequests = new byte[requestString.length()];
 
 		System.out.println("Request Received" + requestString);
 
 		String request = requestString.substring(0, requestString.indexOf(' '));
 
-		String urlString = requestString.substring(requestString.indexOf(' ') + 1);
 
-		urlString = urlString.substring(0,urlString.indexOf(' '));
 
-		if(!urlString.substring(0,4).equals("http")){
-			String temp = "http://";
-			urlString = temp + urlString;
-		}
-
-		System.out.println("HTTPS Request for : " + urlString + "\n");
-		sendCachedInfoToClient(request);
+		proxyServertoClient(clientRequests);
 			
 		/**
 			 * To do
@@ -84,17 +77,15 @@ public class RequestHandler extends Thread {
 		Socket toWebServerSocket = null;
 		InputStream inFromServer;
 		OutputStream outToServer;
-		int port;
-		
+
 		// Create Buffered output stream to write to cached copy of file
 		String fileName = "cached/" + generateRandomFileName() + ".dat";
-		port = 80;
 		
 		// to handle binary content, byte is used
 		byte[] serverReply = new byte[4096];
 
-		ProxyServer.startServer(port);
-
+		sendCachedInfoToClient(fileName);
+		
 		/**
 		 * To do
 		 * (1) Create a socket to connect to the web server (default port 80)

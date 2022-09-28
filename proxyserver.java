@@ -16,20 +16,21 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ProxyServer {
+public class proxyserver {
 
 	//cache is a Map: the key is the URL and the value is the file name of the file that stores the cached content
-	Map<String, String> cache;
+	static Map<String, String> cache;
 	
 	ServerSocket proxySocket;
 
 	String logFileName = "log.txt";
 
-	public static void main(String[] args) {
-		new ProxyServer().startServer(Integer.parseInt(args[0]));
+	public void main(String[] args) {
+		new proxyserver();
+		proxyserver.startServer(Integer.parseInt(args[0]));
 	}
 
-	void startServer(int proxyPort) {
+	static void startServer(int proxyPort) {
 
 		cache = new ConcurrentHashMap<>();
 
@@ -38,8 +39,6 @@ public class ProxyServer {
 		if (!cacheDir.exists() || (cacheDir.exists() && !cacheDir.isDirectory())) {
 			cacheDir.mkdirs();
 		}
-		
-		
 
 		//ServerSocket server = new ServerSocket(Port);
 		DataOutputStream os;
