@@ -9,23 +9,33 @@ import java.security.SecureRandom;
 
 //Temp comment
 // RequestHandler is thread that process requests of one client connection
-public class RequestHandler extends Thread {
+public class RequestHandler extends Thread{
 
-	
+	//socket for communication between client and proxy
+	//passed by proxy
 	Socket clientSocket;
 
+	//date from client to proxy
 	InputStream inFromClient;
 
+	//data from proxy to client
 	OutputStream outToClient;
 	
+	//request from client to proxy server.
+	//client creates request. proxy reads and forwards it to web site
 	byte[] request = new byte[1024];
 
 	
 	private ProxyServer server;
 
 
+	/**
+	 * creates RequestHandler Object for use with GET requests from client
+	 * 
+	 */
 	public RequestHandler(Socket clientSocket, ProxyServer proxyServer) {
 
+		
 		this.clientSocket = clientSocket;
 
 		this.server = proxyServer;
@@ -46,18 +56,44 @@ public class RequestHandler extends Thread {
 	
 	public void run() {
 
-		String requestString;
-		requestString = inFromClient.toString();
-		byte[] clientRequests = new byte[requestString.length()];
+		String requestString = request.toString();
+		try{
+			inFromClient.read(request);
+		}catch(IOException e){
+			e.printStackTrace();
+			System.out.println("Error reading client request\n");
+			return;
+		}
 
-		System.out.println("Request Received" + requestString);
+		//prints request
+		System.out.println("Request: " + requestString + "\n");
 
-		String request = requestString.substring(0, requestString.indexOf(' '));
+		//request type
+		String requestType = requestString.substring(0, requestString.indexOf(' '));
 
+		//URL string
+		String requestURL = requestString.substring(requestString.indexOf(' ') + 1);
 
+		//remove after last space
+		requestURL = requestURL.substring(0, requestURL.indexOf(' '));
 
-		proxyServertoClient(clientRequests);
-			
+		//put HTTP if not present
+		if(!requestURL.substring(0, 4).equals("http")){
+			String t = "http://";
+			requestURL = t + requestURL;
+		}
+
+		//check request type is GET. Ignore others
+		if(requestType.equals("GET")){
+			File file = proxyserver.getCache();
+			if(file != null){
+				System.out.println("Cached copy found\n");
+				sendCachedInfoToClient(file);
+			}else{
+				System.out.println("HTTP GET request for " + requestURL + "\n");
+				sendNoncachedInfoToClient(requestURL);
+			}
+		}
 		/**
 			 * To do
 			 * Process the requests from a client. In particular, 
@@ -94,6 +130,22 @@ public class RequestHandler extends Thread {
 		 * (4) Write the web server's response to a cache file, put the request URL and cache file name to the cache Map
 		 * (5) close file, and sockets.
 		*/
+		String clientSentence;
+		String capitalizedSentence;
+
+		ServerSocket proxySocket = new ServerSocket(80);
+
+		// while(true){		// wait for contact by server
+		// 	Socket connectionSocket = proxySocket.accept();
+
+		// 	BufferedReader inFromClient = new BufferedReader(new InputStreamReader(proxySocket.getInputStream()));
+
+		// 	DataOutputStream outToClient = new DataOutputStream(proxySocket.getOutputStream());
+
+		// 	clientSentence = inFromClient.readLine();
+		// 	capitalizedSentence = clientSentence.toUpperCase() + "\n";
+		// 	outToClient.writeBytes(capitalizedSentence);
+		// }
 		
 	}
 	
@@ -124,7 +176,9 @@ public class RequestHandler extends Thread {
 
 		}
 	}
-	
+	private void sendNoncachedInfoToClient(String requestURL) {
+		//TODO
+	}
 	
 	// Generates a random file name  
 	public String generateRandomFileName() {
