@@ -11,16 +11,20 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Scanner;
 
 public class ProxyServer implements Runnable {
 
 
-	public void main(String[] args) {
-		new ProxyServer();
-		ProxyServer.startServer(8085);
+
+	public static void main(String[] args) {
+		ProxyServer thisProxy = new ProxyServer(80);
+		thisProxy.listen();
+		
 	}
 
 	private static ServerSocket proxySocket;
@@ -45,7 +49,7 @@ public class ProxyServer implements Runnable {
 	/**
 	 * @param proxyPort
 	 */
-	static void startServer(int proxyPort) {
+	public ProxyServer(int proxyPort) {
 		
 		//hashmap to hold cached site URLs
 		cache = new HashMap<>();
@@ -78,11 +82,9 @@ public class ProxyServer implements Runnable {
 		}
 
 		try {
-			// Create the Server Socket for the Proxy 
 			proxySocket = new ServerSocket(proxyPort);
 
-			// Set the timeout
-			//serverSocket.setSoTimeout(100000);	// debug
+
 			System.out.println("Waiting for client on port " + proxySocket.getLocalPort() + "..");
 			running = true;
 		} 
@@ -105,18 +107,14 @@ public class ProxyServer implements Runnable {
 
 		while(running){
 			try {
-				// serverSocket.accpet() Blocks until a connection is made
 				Socket socket = proxySocket.accept();
 				
-				// Create new Thread and pass it Runnable RequestHandler
 				Thread thread = new Thread(new RequestHandler(socket));
 				
-				// Key a reference to each thread so they can be joined later if necessary
 				servicingThreads.add(thread);
 				
 				thread.start();	
 			} catch (SocketException e) {
-				// Socket exception is triggered by management system to shut down the proxy 
 				System.out.println("Server closed");
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -148,7 +146,6 @@ public class ProxyServer implements Runnable {
 			System.out.println("Cached Sites written");
 
 			try{
-				// Close all servicing threads
 				for(Thread thread : servicingThreads){
 					if(thread.isAlive()){
 						System.out.print("Waiting on "+  thread.getId()+" to close..");
@@ -165,7 +162,6 @@ public class ProxyServer implements Runnable {
 				e.printStackTrace();
 			}
 
-			// Close Server Socket
 			try{
 				System.out.println("Terminating Connection");
 				proxySocket.close();
@@ -176,13 +172,6 @@ public class ProxyServer implements Runnable {
 
 		}
 
-	/**
-		 * Creates a management interface which can dynamically update the proxy configurations
-		 * 		blocked : Lists currently blocked sites
-		 *  	cached	: Lists currently cached sites
-		 *  	close	: Closes the proxy server
-		 *  	*		: Adds * to the list of blocked sites
-		 */
 		@Override
 		public void run() {
 			Scanner scanner = new Scanner(System.in);
@@ -213,17 +202,11 @@ public class ProxyServer implements Runnable {
 
 	public synchronized void writeLog(String info) throws IOException {
 		
+		String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
 		FileOutputStream fileOs = new FileOutputStream(logFile);
-		byte[] strToBytes = info.getBytes();
-		fileOs.write(strToBytes);
+		logFile.createNewFile();
 
-		fileOs.close();
-			/**
-			 * To do
-			 * write string (info) to the log file, and add the current time stamp 
-			 * e.g. String timeStamp = new SimpleDateFormat("yyyy.MM.dd.HH.mm.ss").format(new Date());
-			 *
-			*/
+		fileOs.write(info.getBytes());
 	}
 
 }
