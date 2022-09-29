@@ -14,14 +14,13 @@ public class RequestHandler extends Thread {
 	
 	Socket clientSocket;
 
+	proxyserver server;
+
 	InputStream inFromClient;
 
 	OutputStream outToClient;
 	
 	byte[] request = new byte[1024];
-
-	
-	private proxyserver server;
 
 
 	public RequestHandler(Socket clientSocket, proxyserver proxyServer) {
@@ -39,6 +38,8 @@ public class RequestHandler extends Thread {
 			e.printStackTrace();
 		}
 
+		this.run();
+
 	}
 
 	
@@ -52,11 +53,19 @@ public class RequestHandler extends Thread {
 
 		System.out.println("Request Received" + requestString);
 
+		try {
+			if(inFromClient.read(clientRequests) != -1)
+			{
+				proxyServertoClient(clientRequests);
+			}
+			else {
+				System.out.println(outToClient);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+
 		String request = requestString.substring(0, requestString.indexOf(' '));
-
-
-
-		proxyServertoClient(clientRequests);
 			
 		/**
 			 * To do

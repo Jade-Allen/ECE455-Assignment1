@@ -22,25 +22,27 @@ public class proxyserver {
 
 	//cache is a Map: the key is the URL and the value is the file name of the file that stores the cached content
 	static Map<String, String> cache;
-	
+	static proxyserver proxyServer = new proxyserver();
 	ServerSocket proxySocket;
 	String logFileName = "log.txt";
 	File logFile = new File(logFileName);
 
-	public void main(String[] args) {
+	public void main(String[] args) throws NumberFormatException, IOException {
 		new proxyserver();
 		proxyserver.startServer(Integer.parseInt(args[0]));
 	}
 
 	/**
 	 * @param proxyPort
+	 * @throws IOException
 	 */
-	static void startServer(int proxyPort) {
+	static void startServer(int proxyPort) throws IOException {
 
 		cache = new ConcurrentHashMap<>();
 		DataOutputStream os;
 		DataInputStream is;
-		Socket client;
+		Socket client = new Socket();
+		RequestHandler reqHandler;
 		//List<Socket> clientRequestList= new List<Socket>();
 
 		// create the directory to store cached files. 
@@ -58,7 +60,14 @@ public class proxyserver {
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
+			
+		if(client != null)
+		{
+			reqHandler = new RequestHandler(client, proxyServer);
+		}
+		
  
+		client.close();
 		/**
 				 * To do:
 				 * create a serverSocket to listen on the port (proxyPort)
