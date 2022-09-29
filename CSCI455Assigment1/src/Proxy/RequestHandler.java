@@ -7,7 +7,6 @@ import java.security.SecureRandom;
 
 import javax.imageio.ImageIO;
 
-//Temp comment
 // RequestHandler is thread that process requests of one client connection
 public class RequestHandler implements Runnable{
 
@@ -91,15 +90,7 @@ public class RequestHandler implements Runnable{
 				sendNoncachedInfoToClient(requestURL);
 			}
 		}
-		/**
-			 * To do
-			 * Process the requests from a client. In particular, 
-			 * (1) Check the request type, only process GET request and ignore others
-                         * (2) Write log.
-			 * (3) If the url of GET request has been cached, respond with cached content
-			 * (4) Otherwise, call method proxyServertoClient to process the GET request
-			 *
-		*/
+
 
 	}
 	
@@ -107,16 +98,13 @@ public class RequestHandler implements Runnable{
 	
 	// Sends the cached content stored in the cache file to the client
 	private void sendCachedInfoToClient(File cachedFile) {
-		// Read from File containing cached web page
 		try{
-			// If file is an image write data to client using buffered image.
+			// If file is an image
 			String fileExtension = cachedFile.getName().substring(cachedFile.getName().lastIndexOf('.'));
 			
-			// Response that will be sent to the server
 			String response;
 			if((fileExtension.contains(".png")) || fileExtension.contains(".jpg") ||
 					fileExtension.contains(".jpeg") || fileExtension.contains(".gif")){
-				// Read in image from storage
 				BufferedImage image = ImageIO.read(cachedFile);
 				
 				if(image == null ){
@@ -136,7 +124,6 @@ public class RequestHandler implements Runnable{
 				}
 			} 
 			
-			// Standard text based file requested
 			else {
 				BufferedReader cachedFileBufferedReader = new BufferedReader(new InputStreamReader(new FileInputStream(cachedFile)));
 
@@ -152,14 +139,14 @@ public class RequestHandler implements Runnable{
 				}
 				outToClient.flush();
 				
-				// Close resources
+				// Close
 				if(cachedFileBufferedReader != null){
 					cachedFileBufferedReader.close();
 				}	
 			}
 
 
-			// Close Down Resources
+			// Close Down 
 			if(outToClient != null){
 				outToClient.close();
 			}
@@ -173,8 +160,7 @@ public class RequestHandler implements Runnable{
 	private void sendNoncachedInfoToClient(String requestURL) {
 		try{
 			
-			// Compute a logical file name as per schema
-			// This allows the files on stored on disk to resemble that of the URL it was taken from
+
 			int fileExtensionIndex = requestURL.lastIndexOf(".");
 			String fileExtension;
 
@@ -185,14 +171,12 @@ public class RequestHandler implements Runnable{
 			String fileName = requestURL.substring(0,fileExtensionIndex);
 
 
-			// Trim off http://www. as no need for it in file name
+			// Trim off http://www.
 			fileName = fileName.substring(fileName.indexOf('.')+1);
 
-			// Remove any illegal characters from file name
 			fileName = fileName.replace("/", "__");
 			fileName = fileName.replace('.','_');
 			
-			// Trailing / result in index.html of that directory being fetched
 			if(fileExtension.contains("/")){
 				fileExtension = fileExtension.replace("/", "__");
 				fileExtension = fileExtension.replace('.','_');
@@ -203,20 +187,17 @@ public class RequestHandler implements Runnable{
 
 
 
-			// Attempt to create File to cache to
 			boolean caching = true;
 			File fileToCache = null;
 			BufferedWriter fileToCacheBW = null;
 
 			try{
-				// Create File to cache 
 				fileToCache = new File("cached/" + fileName);
 
 				if(!fileToCache.exists()){
 					fileToCache.createNewFile();
 				}
 
-				// Create Buffered output stream to write to cached copy of file
 				fileToCacheBW = new BufferedWriter(new FileWriter(fileToCache));
 			}
 			catch (IOException e){
@@ -236,20 +217,16 @@ public class RequestHandler implements Runnable{
 				BufferedImage image = ImageIO.read(remoteURL);
 
 				if(image != null) {
-					// Cache the image to disk
 					ImageIO.write(image, fileExtension.substring(1), fileToCache);
 
-					// Send response code to client
 					String line = "HTTP/1.0 200 OK\n" +
 							"Proxy-agent: ProxyServer/1.0\n" +
 							"\r\n";
 					outToClient.write(line.getBytes());
 					outToClient.flush();
 
-					// Send them the image data
 					ImageIO.write(image, fileExtension.substring(1), clientSocket.getOutputStream());
 
-				// No image received from remote server
 				} else {
 					System.out.println("Sending 404 to client as image wasn't received from server"
 							+ fileName);
@@ -267,7 +244,6 @@ public class RequestHandler implements Runnable{
 								
 				// Create the URL
 				URL remoteURL = new URL(requestURL);
-				// Create a connection to remote server
 				HttpURLConnection proxyToServerCon = (HttpURLConnection)remoteURL.openConnection();
 				proxyToServerCon.setRequestProperty("Content-Type", 
 						"application/x-www-form-urlencoded");
@@ -275,32 +251,26 @@ public class RequestHandler implements Runnable{
 				proxyToServerCon.setUseCaches(false);
 				proxyToServerCon.setDoOutput(true);
 			
-				// Create Buffered Reader from remote Server
 				BufferedReader proxyToServerBR = new BufferedReader(new InputStreamReader(proxyToServerCon.getInputStream()));
 				
 
-				// Send success code to client
 				String line = "HTTP/1.0 200 OK\n" +
 						"Proxy-agent: ProxyServer/1.0\n" +
 						"\r\n";
 				outToClient.write(line.getBytes());
 				
 				
-				// Read from input stream between proxy and remote server
 				while((line = proxyToServerBR.readLine()) != null){
-					// Send on data to client
 					outToClient.write(line.getBytes());
 
-					// Write to our cached copy of the file
 					if(caching){
 						fileToCacheBW.write(line);
 					}
 				}
 				
-				// Ensure all data is sent by this point
 				outToClient.flush();
 
-				// Close Down Resources
+				// Close
 				if(proxyToServerBR != null){
 					proxyToServerBR.close();
 				}
@@ -308,12 +278,10 @@ public class RequestHandler implements Runnable{
 
 
 			if(caching){
-				// Ensure data written and add to our cached hash maps
 				fileToCacheBW.flush();
 				ProxyServer.putCache(requestURL, fileToCache);
 			}
 
-			// Close down resources
 			if(fileToCacheBW != null){
 				fileToCacheBW.close();
 			}
